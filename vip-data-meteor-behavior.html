@@ -1,0 +1,60 @@
+<!--
+Copyright (c) 2016 The Ayla Project Authors.
+This code may only be used under the MIT style license found at http://aylaweb.github.io/LICENSE.txt
+The complete set of authors may be found at http://aylaweb.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://aylaweb.github.io/CONTRIBUTORS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+
+<script>
+    Ayla = window.Ayla || {};
+    Ayla.VipDataMeteorBehavior = {
+        properties: {
+            dataSourceMeteor: {
+                type: Array,
+                value: function () {
+                    return [];
+                },
+                observer: '_dataSourceMeteorInitChanged'
+            }
+        },
+        observers: ['_dataSourceMeteorChanged(dataSourceMeteor.splices)'],
+        created: function () {
+            console.log(this.id + " -> " + this.localName + " -> vip-subscribe-meteor -> Event created");
+        },
+        getDataMeteor: function (dataSource) {
+          /*  if (!Ayla[dataSource.localCollection]) {
+                Ayla[dataSource.localCollection] = new Mongo.Collection(dataSource.serverCollection);
+            } */
+            Meteor.subscribe(dataSource.publication, dataSource.selector, function () {
+                console.log("subs OK");
+            });
+        },
+        _dataSourceMeteorInitChanged: function (val, old) {
+            if (val.length) {
+                val.forEach(this.getDataMeteor, this);
+            }
+
+        },
+        _dataSourceMeteorChanged: function (changeRecord) {
+            if (changeRecord) {
+                changeRecord.indexSplices.forEach(function (s) {
+                    var newDataSources = s.object.slice(s.index, s.index + s.addedCount);
+                    newDataSources.forEach(this.getDataMeteor, this);
+                }, this);
+            }
+        },
+        ready: function () {
+            console.log(this.id + " -> " + this.localName + " -> vip-data-meteor -> Event ready");
+
+        },
+        attached: function () {
+            console.log(this.id + " -> " + this.localName + " -> vip-data-meteor -> Event attached");
+
+        },
+        detached: function () {
+            console.log(this.id + " -> " + this.localName + " -> vip-data-meteor -> Event detached");
+        }
+    };
+</script>
